@@ -1,3 +1,4 @@
+const { join } = require('path');
 module.exports = (o, n) => {
   const w = new (require('electron').BrowserWindow)({
     frame: false,
@@ -5,7 +6,7 @@ module.exports = (o, n) => {
     center: true,
     backgroundColor: '#2f3136',
     webPreferences: {
-      preload: require('path').join(__dirname, '..', n, 'preload.js')
+      preload: join(__dirname, '..', n, 'preload.js')
     },
     ...o
   });
@@ -16,8 +17,9 @@ module.exports = (o, n) => {
       c.insertCSS(JSON.parse(require('fs').readFileSync(require('path').join(require('../paths').getUserData(), 'userDataCache.json'), 'utf8')).openasarSplashCSS);
     } catch { }
   });
-
-  w.loadURL('https://cdn.openasar.dev/' + n + '?v=' + oaVersion);
+	const url = join(__dirname, '..', n, 'index.html');
+	console.log(url);
+	w.loadFile(url);
 
   return w;
 };

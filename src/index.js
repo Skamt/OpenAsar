@@ -7,7 +7,7 @@ global.oaVersion = 'nightly';
 log('Init', 'OpenAsar', oaVersion);
 
 if (process.resourcesPath.startsWith('/usr/lib/electron')) global.systemElectron = true; // Using system electron, flag for other places
-process.resourcesPath = join(__dirname, '..'); // Force resourcesPath for system electron
+process.resourcesPath = join(process.argv[0], '..', 'resources'); // Force resourcesPath for system electron
 
 const paths = require('./paths');
 paths.init();
