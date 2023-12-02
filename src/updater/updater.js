@@ -12,6 +12,10 @@ const TASK_STATE_FAILED = 'Failed';
 const TASK_STATE_WAITING = 'Waiting';
 const TASK_STATE_WORKING = 'Working';
 
+// discord made breaking changes without any api versioning wow!!
+// so we have to read the node module to determine the version
+let updaterVersion = 1;
+const updaterPath = paths.getExeDir() + '/updater.node';
 
 class Updater extends require('events').EventEmitter {
   constructor(options) {
@@ -19,7 +23,7 @@ class Updater extends require('events').EventEmitter {
 
     let Native;
     try {
-      Native = options.nativeUpdaterModule ?? require(paths.getExeDir() + '/updater');
+      Native = options.nativeUpdaterModule ?? require(updaterPath);
     } catch (e) {
       log('Updater', e); // Error when requiring
 
@@ -172,7 +176,7 @@ class Updater extends require('events').EventEmitter {
   _commitModulesInner(versions) {
     const base = join(this._getHostPath(), 'modules');
 
-    for (const m in versions.current_modules) Module.globalPaths.push(join(base, `${m}-${versions.current_modules[m]}`));
+    for (const m in versions.current_modules) Module.globalPaths.unshift(join(base, `${m}-${versions.current_modules[m]}`));
   }
 
   _recordDownloadProgress(name, progress) {
@@ -228,12 +232,28 @@ class Updater extends require('events').EventEmitter {
       else if (progress.task.ModuleInstall != null) this._recordInstallProgress(progress.task.ModuleInstall.version.module.name, progress, progress.task.ModuleInstall.version.version, progress.task.ModuleInstall.from_version != null);
   }
 
-  queryCurrentVersions() {
-    return this._sendRequest('QueryCurrentVersions');
+  constructQueryCurrentVersionsRequest(options) {
+    if (updaterVersion === 1) return 'QueryCurrentVersions';
+
+    return {
+      QueryCurrentVersions: {
+        options
+      }
+    };
   }
 
+  queryCurrentVersionsWithOptions(options) {
+    return this._sendRequest(this.constructQueryCurrentVersionsRequest(options));
+  }
+  queryCurrentVersions() {
+    return this.queryCurrentVersionsWithOptions(null);
+  }
+
+  queryCurrentVersionsWithOptionsSync(options) {
+    return this._handleSyncResponse(this._sendRequestSync(this.constructQueryCurrentVersionsRequest(options)));
+  }
   queryCurrentVersionsSync() {
-    return this._handleSyncResponse(this._sendRequestSync('QueryCurrentVersions'));
+    return this.queryCurrentVersionsWithOptionsSync(null);
   }
 
   repair(progressCallback) {
@@ -290,8 +310,8 @@ class Updater extends require('events').EventEmitter {
   }
 
 
-  async startCurrentVersion(options) {
-    const versions = await this.queryCurrentVersions();
+  async startCurrentVersion(queryOptions, options) {
+    const versions = await this.queryCurrentVersionsWithOptions(queryOptions);
     await this.setRunningManifest(versions.last_successful_update);
 
     this._startCurrentVersionInner(options, versions);
@@ -301,10 +321,10 @@ class Updater extends require('events').EventEmitter {
     this._startCurrentVersionInner(options, this.queryCurrentVersionsSync());
   }
 
-  async commitModules(versions) {
+  async commitModules(queryOptions, versions) {
     if (this.committedHostVersion == null) throw 'No host';
 
-    this._commitModulesInner(versions ?? await this.queryCurrentVersions());
+    this._commitModulesInner(versions ?? await this.queryCurrentVersionsWithOptions(queryOptions));
   }
 
   queryAndTruncateHistory() {
@@ -324,7 +344,6 @@ class Updater extends require('events').EventEmitter {
 
     return this.nativeUpdater.create_shortcut(options);
   }
-
 }
 
 
@@ -341,11 +360,18 @@ module.exports = {
     const root_path = paths.getInstallPath();
     if (root_path == null) return false;
 
+    const updaterContents = require('fs').readFileSync(updaterPath, 'utf8');
+    if (updaterContents.includes('Determined this is an architecture transition')) updaterVersion = 2;
+
+    log('Updater', 'Determined native module version', updaterVersion);
+
     instance = new Updater({
       release_channel: buildInfo.releaseChannel,
       platform: process.platform === 'win32' ? 'win' : 'osx',
       repository_url,
-      root_path
+      root_path,
+      user_data_path: paths.getUserData(),
+      current_os_arch: process.platform === 'win32' ? (['AMD64', 'IA64'].includes(process.env.PROCESSOR_ARCHITEW6432 ?? process.env.PROCESSOR_ARCHITECTURE) ? 'x64' : 'x86') : null
     });
 
     return instance.valid;
