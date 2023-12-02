@@ -72,6 +72,7 @@ const startCore = () => {
 			},
 			crashReporterSetup: {
 				isInitialized: () => true,
+				getGlobalSentry: () => null,
 				metadata: {}
 			}
 		});
