@@ -34,7 +34,7 @@ const startCore = () => {
 
 	app.on("browser-window-created", (e, bw) => {
 		// Main window injection
-		if (oaConfig.openDevTools) bw.openDevTools({ mode: "detach" });
+		if (oaConfig.openDevTools) bw.openDevTools();
 		bw.webContents.on("dom-ready", () => {
 			if (!bw.resizable) return; // Main window only
 			splash.pageReady(); // Override Core's pageReady with our own on dom-ready to show main window earlier
@@ -89,7 +89,11 @@ const startCore = () => {
 };
 
 const startUpdate = () => {
-	const urls = [oaConfig.noTrack !== false ? "https://*/api/*/science" : "", oaConfig.noTrack !== false ? "https://*/api/*/metrics" : "", oaConfig.noTyping === true ? "https://*/api/*/typing" : ""].filter(x => x);
+	const urls = [
+		oaConfig.noTrack !== false ? "https://*/api/*/science" : "",
+		oaConfig.noTrack !== false ? "https://*/api/*/metrics" : "",
+		oaConfig.noTyping === true ? "https://*/api/*/typing" : ""
+	].filter(x => x);
 
 	if (urls.length > 0) session.defaultSession.webRequest.onBeforeRequest({ urls }, (e, cb) => cb({ cancel: true }));
 
