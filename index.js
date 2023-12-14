@@ -1,1 +1,1 @@
-require("G:\\Documents\\Repos\\OpenAsar\\src");
+require("./src");
