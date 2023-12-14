@@ -38,16 +38,6 @@ const startCore = () => {
 		bw.webContents.on("dom-ready", () => {
 			if (!bw.resizable) return; // Main window only
 			splash.pageReady(); // Override Core's pageReady with our own on dom-ready to show main window earlier
-
-			// const [ channel = '', hash = '' ] = oaVersion.split('-'); // Split via -
-
-			// bw.webContents.executeJavaScript(readFileSync(join(__dirname, 'mainWindow.js'), 'utf8')
-			//   .replaceAll('<hash>', hash).replaceAll('<channel>', channel)
-			//   .replaceAll('<notrack>', oaConfig.noTrack !== false)
-			//   .replaceAll('<domopt>', oaConfig.domOptimizer !== false)
-			//   .replace('<css>', (oaConfig.css ?? '').replaceAll('\\', '\\\\').replaceAll('`', '\\`')));
-
-			// if (oaConfig.js) bw.webContents.executeJavaScript(oaConfig.js);
 		});
 	});
 
@@ -90,11 +80,7 @@ const startCore = () => {
 };
 
 const startUpdate = () => {
-	const urls = [
-		oaConfig.noTrack !== false ? "https://*/api/*/science" : "",
-		oaConfig.noTrack !== false ? "https://*/api/*/metrics" : "",
-		oaConfig.noTyping === true ? "https://*/api/*/typing" : ""
-	].filter(x => x);
+	const urls = [oaConfig.noTrack !== false ? "https://*/api/*/science" : "", oaConfig.noTrack !== false ? "https://*/api/*/metrics" : "", oaConfig.noTyping === true ? "https://*/api/*/typing" : ""].filter(x => x);
 
 	if (urls.length > 0) session.defaultSession.webRequest.onBeforeRequest({ urls }, (e, cb) => cb({ cancel: true }));
 
@@ -107,8 +93,6 @@ const startUpdate = () => {
 		inst.on("unhandled-exception", fatal);
 		inst.on("InconsistentInstallerState", fatal);
 		inst.on("update-error", console.error);
-
-		require("./winFirst").do();
 	} else {
 		moduleUpdater.init(Constants.UPDATE_ENDPOINT, buildInfo);
 	}
@@ -123,20 +107,6 @@ const startUpdate = () => {
 		done = true;
 
 		desktopCore.setMainWindowVisible(!startMin);
-
-		setTimeout(() => {
-			// Try to update our asar
-			const config = require("./config");
-			if (oaConfig.setup !== true) config.open();
-
-			if (oaConfig.autoupdate !== false) {
-				try {
-					require("./asarUpdate")();
-				} catch (e) {
-					log("AsarUpdate", e);
-				}
-			}
-		}, 3000);
 	});
 
 	splash.initSplash(startMin);
