@@ -80,7 +80,12 @@ const startCore = () => {
 };
 
 const startUpdate = () => {
-	const urls = [oaConfig.noTrack !== false ? "https://*/api/*/science" : "", oaConfig.noTrack !== false ? "https://*/api/*/metrics" : "", oaConfig.noTyping === true ? "https://*/api/*/typing" : ""].filter(x => x);
+	const urls = [
+		...(Array.isArray(oaConfig.filters) && oaConfig.filters.length > 0 ? [...oaConfig.filters] : []),
+		oaConfig.noTrack !== false ? "https://*/api/*/science" : "",
+		oaConfig.noTrack !== false ? "https://*/api/*/metrics" : "",
+		oaConfig.noTyping === true ? "https://*/api/*/typing" : ""
+	].filter(x => x);
 
 	if (urls.length > 0) session.defaultSession.webRequest.onBeforeRequest({ urls }, (e, cb) => cb({ cancel: true }));
 
@@ -107,6 +112,12 @@ const startUpdate = () => {
 		done = true;
 
 		desktopCore.setMainWindowVisible(!startMin);
+
+		setTimeout(() => {
+			// Try to update our asar
+			const config = require("./config");
+			if (oaConfig.setup !== true) config.open();
+		}, 3000);
 	});
 
 	splash.initSplash(startMin);
