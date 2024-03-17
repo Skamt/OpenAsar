@@ -80,12 +80,7 @@ const startCore = () => {
 };
 
 const startUpdate = () => {
-	const urls = [
-		...(Array.isArray(oaConfig.filters) && oaConfig.filters.length > 0 ? [...oaConfig.filters] : []),
-		oaConfig.noTrack !== false ? "https://*/api/*/science" : "",
-		oaConfig.noTrack !== false ? "https://*/api/*/metrics" : "",
-		oaConfig.noTyping === true ? "https://*/api/*/typing" : ""
-	].filter(x => x);
+	const urls = Array.isArray(oaConfig.filters) && oaConfig.filters.length > 0 ? oaConfig.filters : [];	
 
 	if (urls.length > 0) session.defaultSession.webRequest.onBeforeRequest({ urls }, (e, cb) => cb({ cancel: true }));
 
