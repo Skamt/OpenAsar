@@ -64,6 +64,10 @@ const startCore = () => {
 				isInitialized: () => true,
 				getGlobalSentry: () => null,
 				metadata: {}
+			},
+			logger: {
+				initializeLogging: () => {},
+				ipcMainRendererLogger: () => {}
 			}
 		});
 	} catch (e) {
@@ -80,7 +84,7 @@ const startCore = () => {
 };
 
 const startUpdate = () => {
-	const urls = Array.isArray(oaConfig.filters) && oaConfig.filters.length > 0 ? oaConfig.filters : [];	
+	const urls = Array.isArray(oaConfig.filters) && oaConfig.filters.length > 0 ? oaConfig.filters : [];
 
 	if (urls.length > 0) session.defaultSession.webRequest.onBeforeRequest({ urls }, (e, cb) => cb({ cancel: true }));
 

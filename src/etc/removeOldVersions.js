@@ -1,3 +1,4 @@
+// return;
 const { version } = require("../utils/buildInfo");
 const { resolve, join } = require("path");
 const { rmSync, readdirSync } = require("fs");

@@ -3,7 +3,8 @@ const { app, ipcMain } = require("electron");
 const moduleUpdater = require("../updater/moduleUpdater");
 const updater = require("../updater/updater");
 
-let launched, win;
+let launched;
+let win;
 
 exports.initSplash = startMin => {
 	const inst = updater.getUpdater();
@@ -12,7 +13,7 @@ exports.initSplash = startMin => {
 
 	launchSplash(startMin);
 
-	if (process.env.OPENASAR_QUICKSTART || oaConfig.quickstart)
+	// if (process.env.OPENASAR_QUICKSTART || oaConfig.quickstart)
 		setTimeout(() => {
 			destroySplash();
 
@@ -120,7 +121,7 @@ const initNew = async inst => {
 	toSend = -1;
 
 	const retryOptions = {
-		skip_host_delta: false,
+		skip_host_delta: true,
 		skip_module_delta: {},
 		skip_all_module_delta: false,
 		skip_windows_arch_update: false,
@@ -150,9 +151,7 @@ const initNew = async inst => {
 				if (install == null) return;
 				simpleRecord(installs, install);
 
-				if (task.HostInstall != null) {
-					retryOptions.skip_host_delta = true;
-				} else if (task.ModuleInstall != null) {
+				if (task.ModuleInstall != null) {
 					retryOptions.skip_module_delta[install.version.module.name] = true;
 				}
 			});

@@ -5,9 +5,9 @@ function patchAudioVolume() {
 	Object.defineProperty(HTMLAudioElement.prototype, "play", {
 		configurable: true,
 		writable: true,
-		value: function() {
+		value: function(...args) {
 			this.volume = 0.2;
-			return original.apply(this, arguments);
+			return original.apply(this, args);
 		}
 	});
 }
