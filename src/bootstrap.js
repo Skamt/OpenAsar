@@ -44,6 +44,18 @@ const startCore = () => {
 	try {
 		desktopCore = require("discord_desktop_core");
 
+		const desktopTTI = new Proxy(
+			{},
+			{
+				get: (target, prop) => {
+					if (typeof target[prop] === "undefined") {
+						target[prop] = () => {};
+					}
+					return target[prop];
+				}
+			}
+		);
+
 		desktopCore.startup({
 			splashScreen: splash,
 			moduleUpdater,
@@ -68,7 +80,19 @@ const startCore = () => {
 			logger: {
 				initializeLogging: () => {},
 				ipcMainRendererLogger: () => {}
-			}
+			},
+			analytics: new Proxy(
+				{},
+				{
+					get: (target, prop) => {
+						if (prop === "getDesktopTTI") return () => desktopTTI;
+						if (typeof target[prop] === "undefined") {
+							target[prop] = () => {};
+						}
+						return target[prop];
+					}
+				}
+			)
 		});
 	} catch (e) {
 		console.dir(e);
