@@ -6,6 +6,7 @@ const { app, autoUpdater } = require('electron');
 const { get } = require('https');
 
 const paths = require('../paths');
+const buildInfo = require('../utils/buildInfo');
 
 const mkdir = (x) => fs.mkdirSync(x, { recursive: true });
 
@@ -47,10 +48,11 @@ const redirs = url => new Promise(res => get(url, r => { // Minimal wrapper arou
 }));
 
 exports.init = (endpoint, { releaseChannel, version }) => {
+  const local = buildInfo.localModulesRoot;
   skipHost = settings.get('SKIP_HOST_UPDATE');
-  skipModule = settings.get('SKIP_MODULE_UPDATE');
+  skipModule = settings.get('SKIP_MODULE_UPDATE') || local != null;
 
-  basePath = join(paths.getUserDataVersioned(), 'modules');
+  basePath = local != null ? local : join(paths.getUserDataVersioned(), 'modules');
   manifestPath = join(basePath, 'installed.json');
   downloadPath = join(basePath, 'pending');
 
@@ -69,7 +71,6 @@ exports.init = (endpoint, { releaseChannel, version }) => {
       installed[m] = { installedVersion: 0 };
     }
   }
-
 
   host = process.platform === 'linux' ? new (class HostLinux extends require('events').EventEmitter {
     setFeedURL(url) {
@@ -264,7 +265,7 @@ exports.checkForUpdates = async () => {
 
 exports.quitAndInstallUpdates = () => host.quitAndInstall();
 
-exports.isInstalled = (n, v) => installed[n] && !(v && installed[n].installedVersion !== v);
+exports.isInstalled = (n, v) => installed[n] && (skipModule || !(v && installed[n].installedVersion !== v));
 exports.getInstalled = () => ({ ...installed });
 
 const commitManifest = () => fs.writeFileSync(manifestPath, JSON.stringify(installed, null, 2));

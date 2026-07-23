@@ -18,8 +18,7 @@ exports.cleanOldVersions = () => {}; // stub for now
 
 exports.init = () => {
   const appDir = 'discord' + (buildInfo.releaseChannel === 'stable' ? '' : buildInfo.releaseChannel); // Clean channel naming up later to util?
-  userData = "G:\\progs\\Installed\\Discord\\discord";
-  //userData = process.env.DISCORD_USER_DATA_DIR ?? join(app.getPath('appData'), appDir);
+  userData = process.env.DISCORD_USER_DATA_DIR ?? join(app.getPath('appData'), appDir);
   userDataVersioned = join(userData, buildInfo.version);
 
   exeDir = dirname(app.getPath('exe'));
@@ -30,7 +29,8 @@ exports.init = () => {
   }
   rootPath = process.platform === 'darwin' ? userData : installPath;
 
-  moduleData = buildInfo.newUpdater ? join(userData, 'module_data') : join(userDataVersioned, 'modules');
+  moduleData = buildInfo.localModulesRoot != null ? buildInfo.localModulesRoot :
+    (buildInfo.newUpdater ? join(userData, 'module_data') : join(userDataVersioned, 'modules'));
   resourcesPath = join(process.resourcesPath);
   logPath = join(userData, 'logs');
   assetCachePath = join(userData, 'discord_asset_cache');
